@@ -1,0 +1,196 @@
+# ============================================================
+# STACK HADOOP COMPLETO para Big Data DD283
+# Universidad Autónoma del Perú — Semestre 2026-1
+#
+# SERVICIOS:
+#   - HDFS (NameNode + DataNodes)
+#   - YARN (ResourceManager + NodeManager)
+#   - Hive
+#   - HBase
+#   - Spark
+#   - Jupyter Lab (interfaz principal)
+#
+# USO:
+#   Iniciar:  docker-compose up -d
+#   Detener:  docker-compose down
+#   Ver logs: docker-compose logs -f namenode
+#   Shell:    docker exec -it namenode bash
+#
+# REQUISITOS:
+#   - Docker Desktop instalado y corriendo
+#   - Mínimo 8GB RAM asignados a Docker
+#   - Mínimo 20GB espacio en disco libre
+#
+# PUERTOS EXPUESTOS:
+#   - 9870  → HDFS NameNode Web UI
+#   - 8088  → YARN ResourceManager Web UI
+#   - 8888  → Jupyter Lab
+#   - 4040  → Spark UI (cuando hay job activo)
+#   - 16010 → HBase Master Web UI
+# ============================================================
+
+version: "3.8"
+
+services:
+
+  # ── HDFS NAMENODE ─────────────────────────────────────────
+  namenode:
+    image: apache/hadoop:3.3.5
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"   # NameNode Web UI → http://localhost:9870
+      - "9000:9000"   # HDFS RPC
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - CLUSTER_NAME=bigdata-ua-cluster
+    volumes:
+      - hadoop_namenode:/tmp/hadoop-root
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+    command: ["hdfs", "namenode"]
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── HDFS DATANODE 1 ───────────────────────────────────────
+  datanode1:
+    image: apache/hadoop:3.3.5
+    container_name: datanode1
+    hostname: datanode1
+    depends_on:
+      - namenode
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - SERVICE_PRECONDITION=namenode:9870
+    volumes:
+      - hadoop_datanode1:/tmp/hadoop-root
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+    command: ["hdfs", "datanode"]
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── HDFS DATANODE 2 ───────────────────────────────────────
+  datanode2:
+    image: apache/hadoop:3.3.5
+    container_name: datanode2
+    hostname: datanode2
+    depends_on:
+      - namenode
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - SERVICE_PRECONDITION=namenode:9870
+    volumes:
+      - hadoop_datanode2:/tmp/hadoop-root
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+    command: ["hdfs", "datanode"]
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── YARN RESOURCE MANAGER ─────────────────────────────────
+  resourcemanager:
+    image: apache/hadoop:3.3.5
+    container_name: resourcemanager
+    hostname: resourcemanager
+    ports:
+      - "8088:8088"   # YARN Web UI → http://localhost:8088
+    depends_on:
+      - namenode
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - SERVICE_PRECONDITION=namenode:9870
+    volumes:
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+    command: ["yarn", "resourcemanager"]
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── YARN NODE MANAGER ─────────────────────────────────────
+  nodemanager:
+    image: apache/hadoop:3.3.5
+    container_name: nodemanager
+    hostname: nodemanager
+    depends_on:
+      - resourcemanager
+    environment:
+      - HADOOP_HOME=/opt/hadoop
+      - SERVICE_PRECONDITION=resourcemanager:8088
+    volumes:
+      - ./hadoop_config:/opt/hadoop/etc/hadoop
+    command: ["yarn", "nodemanager"]
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── JUPYTER LAB (interfaz principal para estudiantes) ─────
+  jupyter:
+    image: jupyter/pyspark-notebook:spark-3.5.0
+    container_name: jupyter_bigdata
+    ports:
+      - "8888:8888"   # Jupyter → http://localhost:8888
+      - "4040:4040"   # Spark UI → http://localhost:4040
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=bigdata2026    # Contraseña de acceso
+      - SPARK_OPTS=--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M
+    volumes:
+      - ./semana_01/notebooks:/home/jovyan/semana_01
+      - ./semana_02/notebooks:/home/jovyan/semana_02
+      - ./semana_03/notebooks:/home/jovyan/semana_03
+      - ./semana_04/notebooks:/home/jovyan/semana_04
+      - ./semana_05/notebooks:/home/jovyan/semana_05
+      - ./semana_06/notebooks:/home/jovyan/semana_06
+      - ./semana_07/notebooks:/home/jovyan/semana_07
+      - ./semana_08/notebooks:/home/jovyan/semana_08
+      - ./datasets:/home/jovyan/datasets
+      - ./proyectos:/home/jovyan/proyectos
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── MONGODB (NoSQL — Semana 3) ────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb_bigdata
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=bigdata2026
+      - MONGO_INITDB_DATABASE=bigdata_curso
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+  # ── MONGO EXPRESS (GUI para MongoDB) ─────────────────────
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: mongo_express
+    ports:
+      - "8081:8081"   # Mongo Express → http://localhost:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=bigdata2026
+      - ME_CONFIG_MONGODB_URL=mongodb://admin:bigdata2026@mongodb:27017/
+      - ME_CONFIG_BASICAUTH=false
+    depends_on:
+      - mongodb
+    networks:
+      - hadoop_net
+    restart: unless-stopped
+
+# ── VOLUMES ───────────────────────────────────────────────────
+volumes:
+  hadoop_namenode:
+  hadoop_datanode1:
+  hadoop_datanode2:
+  mongodb_data:
+
+# ── NETWORK ───────────────────────────────────────────────────
+networks:
+  hadoop_net:
+    driver: bridge
