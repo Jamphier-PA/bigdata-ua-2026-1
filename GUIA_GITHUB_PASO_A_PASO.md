@@ -72,86 +72,107 @@ GitHub → Repositorio → Settings → Branches → Add rule
 
 # PARTE 2 — LOS ESTUDIANTES CONFIGURAN SU REPOSITORIO
 
-## SEMANA 1 — Primera vez (configuración inicial)
+GUIA DEFINITIVA — Estudiantes (paso a paso completo)
+FASE 1: Configuración inicial (solo UNA VEZ en todo el semestre)
+En la web — github.com:
 
-### Paso 1: Crear cuenta en GitHub
-```
-1. Ir a github.com
-2. Sign Up → usar email universitario o personal
-3. Verificar el email
-4. Elegir plan: Free (suficiente para el curso)
-```
 
-### Paso 2: Hacer FORK del repositorio del docente
+1. Ir a: github.com/RubenCarty/bigdata-ua-2026-1
+2. Clic en el botón "Fork" (arriba a la derecha)
+3. Clic "Create fork"
+   → Ahora tienen su propia copia: github.com/SU-USUARIO/bigdata-ua-2026-1
+En su laptop — Terminal:
 
-```
-1. Ir a: github.com/[USUARIO_DOCENTE]/bigdata-ua-2026-1
-2. Clic en el botón FORK (esquina superior derecha)
-3. Owner: seleccionar TU cuenta
-4. Repository name: bigdata-ua-2026-1 (o cambiar a tu nombre)
-5. ✅ Copy the main branch only
-6. Clic: Create Fork
 
-✅ Ahora tienes: github.com/TU_USUARIO/bigdata-ua-2026-1
-```
+# Paso 1: Clonar SU fork a su laptop
+git clone https://github.com/SU-USUARIO/bigdata-ua-2026-1.git
+# ¿Para qué? Descarga todos los archivos del repo a su computadora
 
-### Paso 3: Clonar TU fork en tu laptop
-
-```bash
-# Abrir terminal (PowerShell en Windows, Terminal en Mac/Linux)
-
-# Ir a la carpeta donde quieres guardar el proyecto
-cd Documents   # o donde prefieras
-
-# Clonar TU fork (NO el del docente)
-git clone https://github.com/TU_USUARIO/bigdata-ua-2026-1.git
+# Paso 2: Entrar a la carpeta
 cd bigdata-ua-2026-1
+# ¿Para qué? Posicionarse dentro del repo para que Git funcione
 
-# Verificar que está conectado a tu repo
-git remote -v
-# Debe mostrar: origin → https://github.com/TU_USUARIO/bigdata-ua-2026-1.git
-```
+# Paso 3: Conectar con el repo del DOCENTE
+git remote add upstream https://github.com/RubenCarty/bigdata-ua-2026-1.git
+# ¿Para qué? Crear un "canal" para recibir actualizaciones del docente cada semana
 
-### Paso 4: Conectar con el repositorio del docente (upstream)
-
-```bash
-# Agregar el repo del docente como "upstream" (para sincronizar actualizaciones)
-git remote add upstream https://github.com/[USUARIO_DOCENTE]/bigdata-ua-2026-1.git
-
-# Verificar
+# Paso 4: Verificar que quedó bien
 git remote -v
 # Debe mostrar:
-# origin    → https://github.com/TU_USUARIO/bigdata-ua-2026-1.git
-# upstream  → https://github.com/DOCENTE/bigdata-ua-2026-1.git
+# origin   → su fork (donde ellos suben sus tareas)
+# upstream → repo del docente (de donde descargan materiales nuevos)
 
-echo "✅ Repositorio configurado correctamente"
-```
+# Paso 5: Configurar su identidad
+git config user.name "Juan Perez"
+git config user.email "juan.perez@gmail.com"
+FASE 2: Inicio de cada semana (descargar material nuevo del docente)
 
-### Paso 5: Configurar tu identidad en Git
+# Volver a la rama principal
+git checkout main
+# ¿Para qué? Asegurarse de estar en la base antes de sincronizar
 
-```bash
-git config --global user.name "Tu Nombre Completo"
-git config --global user.email "tu.email@autonoma.pe"
-git config --global core.editor "code"   # Usar VS Code como editor
+# Descargar los materiales nuevos del docente
+git pull upstream main
+# ¿Para qué? Traer a su laptop todo lo que el docente publicó
+# (guías de trabajo, labs, slides de la semana)
 
-# Verificar
-git config --list
-```
+# Actualizar también su fork en GitHub
+git push origin main
+# ¿Para qué? Su copia en GitHub también queda actualizada
+FASE 3: Trabajar y entregar la tarea
 
-### Paso 6: Instalar el entorno del curso
+# Crear su rama personal para la semana
+git checkout -b semana-01-lopez-maria
+# ¿Para qué? Crear una "línea de trabajo" solo para ellos
+# FORMATO: semana-NN-apellido-nombre (sin espacios, sin tildes)
+# NUNCA trabajar directamente en main
 
-```bash
-# Opción A: Con Conda (recomendado)
-conda env create -f setup/environment.yml
-conda activate bigdata-ua
+# --- Aquí el estudiante trabaja ---
+# Abre Jupyter, completa el lab, responde las preguntas teóricas
+# Guarda sus archivos con el formato correcto:
+#   semana_01/Solucion_S1/lopez_maria/GUIA_TRABAJO_S1_lopez.md
+#   semana_01/Solucion_S1/lopez_maria/LABORATORIO_S1_lopez.ipynb
 
-# Opción B: Con pip
-pip install -r setup/requirements.txt
+# Ver qué archivos modificó
+git status
 
-# Verificar que todo está bien
-python setup/verificar_entorno.py
-```
+# Agregar sus archivos de solución
+git add semana_01/Solucion_S1/lopez_maria/
+# ¿Para qué? Preparar SOLO sus archivos (no tocar los de otros)
 
+# Guardar con mensaje claro
+git commit -m "[S01] entrego guia de trabajo y lab completado - Lopez Maria"
+# ¿Para qué? Registrar en el historial que entregó su tarea
+
+# Subir su rama a GitHub (a su fork)
+git push origin semana-01-lopez-maria
+# ¿Para qué? Sus archivos ahora están en internet, en su fork personal
+FASE 4: Crear el Pull Request (la "entrega oficial")
+
+1. Ir a: github.com/SU-USUARIO/bigdata-ua-2026-1
+2. Aparece banner amarillo: "Compare & pull request" → clic
+3. Verificar que dice:
+   base repository: RubenCarty/bigdata-ua-2026-1   base: main    ← repo del docente
+   head repository: SU-USUARIO/bigdata-ua-2026-1   compare: semana-01-lopez-maria
+4. Completar el formulario automático:
+   - Nombre completo
+   - Semana entregada
+   - Qué aprendió
+   - Conexión con su trabajo actual
+5. Clic "Create pull request"
+
+FASE 5: Docente revisa y apruebas 
+
+github.com/RubenCarty/bigdata-ua-2026-1 → Pull requests
+Acción	Cómo
+Ver la tarea	Tab "Files changed"
+Comentar líneas	Clic en el "+" de cada línea
+Aprobar	"Review changes" → Approve
+Pedir corrección	"Review changes" → Request changes
+Hacer merge (aprobar entrega final)	"Merge pull request"
+Resumen visual del flujo completo
+
+                    
 ---
 
 # PARTE 3 — FLUJO SEMANAL (repetir cada semana)
