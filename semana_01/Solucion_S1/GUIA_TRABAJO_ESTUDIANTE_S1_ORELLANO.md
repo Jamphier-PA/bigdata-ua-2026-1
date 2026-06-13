@@ -1,7 +1,7 @@
 # GUÍA DE TRABAJO RESUELTA - SEMANA 1
 ## Big Data (DD283) | Universidad Autónoma del Perú
 
-**Nombre(s)**: Hidgar Orellano Huerta 
+**Nombre(s)**: Hidgar Orellano Huerta
 **Grupo de proyecto**: 04
 **Fecha**: 12/06/2026 
 **Modalidad**: Individual
